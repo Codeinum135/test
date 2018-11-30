@@ -29,21 +29,21 @@
 		},
 		"existingVirtualNetworkName": {
 			"type": "string",
-			"defaultValue": "test-vnet",
+			"defaultValue": "UmojoGrmVNet",
 			"metadata": {
 				"description": "Name of the existing VNET"
 			}
 		},
 		"existingVirtualNetworkResourceGroup": {
 			"type": "string",
-			"defaultValue": "test",
+			"defaultValue": "UmojoGrmEnv",
 			"metadata": {
 				"description": "Name of the existing VNET resource group"
 			}
 		},
 		"subnetName": {
 			"type": "string",
-			"defaultValue": "dc1-vnet",
+			"defaultValue": "UmojoGRMSubnet",
 			"metadata": {
 				"description": "Name of the subnet in the virtual network you want to use"
 			}
@@ -53,7 +53,7 @@
 		"diskName": "[concat(parameters('vmName'), 'disk')]",
 		"vnetID": "[resourceId(parameters('existingVirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVirtualNetworkName'))]",
 		"subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnetName'))]",
-		"nicName": "[concat(parameters('vmName'), 'test1.48n.com')]"
+		"nicName": "[concat(parameters('vmName'), 'nic')]"
 	},
 	"resources": [{
 			"type": "Microsoft.Compute/disks",
@@ -66,7 +66,7 @@
 				"osType": "[parameters('osType')]",
 				"creationData": {
 					"createOption": "Copy",
-					"sourceUri": "/subscriptions/b7e7de59-3c51-4661-8d27-481bd435485b/resourceGroups/ci-grm/providers/Microsoft.Compute/snapshots/UmojoSnapshot"
+					"sourceUri": "/subscriptions/b5ff17c6-b308-4b91-84d9-a92fa11a6693/resourceGroups/UmojoGrmEnv/providers/Microsoft.Compute/snapshots/UmojoSnapshot"
 				}
 			},
 			"dependsOn": []
