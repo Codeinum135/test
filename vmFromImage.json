@@ -1,0 +1,109 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"vmName": {
+			"defaultValue": "UmojoGrm1",
+			"type": "string",
+			"metadata": {
+				"description": "Name of the VM"
+			}
+		},
+		"osType": {
+			"type": "string",
+			"defaultValue": "Windows",
+			"allowedValues": [
+				"Windows",
+				"Linux"
+			],
+			"metadata": {
+				"description": "Type of OS on the existing vhd"
+			}
+		},
+		"vmSize": {
+			"type": "string",
+			"defaultValue": "Standard_DS1_v2",
+			"metadata": {
+				"description": "Size of the VM"
+			}
+		},
+		"existingVirtualNetworkName": {
+			"type": "string",
+			"defaultValue": "test-vnet",
+			"metadata": {
+				"description": "Name of the existing VNET"
+			}
+		},
+		"existingVirtualNetworkResourceGroup": {
+			"type": "string",
+			"defaultValue": "test",
+			"metadata": {
+				"description": "Name of the existing VNET resource group"
+			}
+		},
+		"subnetName": {
+			"type": "string",
+			"defaultValue": "dc1-vnet",
+			"metadata": {
+				"description": "Name of the subnet in the virtual network you want to use"
+			}
+		}
+	},
+	"variables": {
+		"diskName": "[concat(parameters('vmName'), 'disk')]",
+		"vnetID": "[resourceId(parameters('existingVirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVirtualNetworkName'))]",
+		"subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('subnetName'))]",
+		"nicName": "[concat(parameters('vmName'), 'test1.48n.com')]"
+	},
+	"resources": [{
+			"type": "Microsoft.Compute/disks",
+			"name": "[variables('diskName')]",
+			"apiVersion": "2016-04-30-preview",
+			"location": "[resourceGroup().location]",
+			"properties": {
+				"accountType": "Premium_LRS",
+				"diskSizeGB": "128",
+				"osType": "[parameters('osType')]",
+				"creationData": {
+					"createOption": "Copy",
+					"sourceUri": "https://grm.blob.core.windows.net/vhd/UmojoSnapshot"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"apiVersion": "2016-04-30-preview",
+			"type": "Microsoft.Compute/virtualMachines",
+			"name": "[parameters('vmName')]",
+			"location": "[resourceGroup().location]",
+			"tags": {
+				"displayName": "VirtualMachine"
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Compute/disks', variables('diskName'))]"
+			],
+			"properties": {
+				"hardwareProfile": {
+					"vmSize": "[parameters('vmSize')]"
+				},
+				"storageProfile": {
+					"osDisk": {
+						"createOption": "Attach",
+						"osType": "[parameters('osType')]",
+						"managedDisk": {
+							"storageAccountType": "Premium_LRS",
+							"id": "[resourceId('Microsoft.Compute/disks', variables('diskName'))]"
+						}
+					},
+					"dataDisks": []
+				},
+				"networkProfile": {
+					"networkInterfaces": [{
+						"id": "[resourceId(parameters('existingVirtualNetworkResourceGroup'),'Microsoft.Network/networkInterfaces',variables('nicName'))]"
+					}]
+				}
+			}
+		}
+
+	]
+}
